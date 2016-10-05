@@ -35,7 +35,7 @@ def fread_json file
     json = f.read()
     begin
       JSON.parse(json)
-    rescue
+    rescue Exception => e
       {}
     end
   end
@@ -68,28 +68,81 @@ headers = {
       http.headers[k] = v
     end
   end
-  fwrite_json("#{category}.raw.json", http.body_str)
+  fwrite_json("../data/#{category}.raw.json", http.body_str)
 end
 
-def expand_tree tree
-  if tree['h'] =~ /^http/ && tree['h'].match(/b-([\d]+)$/)
-    if $1
-      save_tree $1
+def expand_tree tree, parent=nil, &blk
+  return if tree.nil?
+
+  if block_given?
+    blk.call(tree, parent)
+  end
+
+  childrens = if !tree['c'].nil? && tree['c'].length
+                tree['c']
+              elsif !tree['l'].nil? && tree['l'].length
+                tree['l']
+              else
+                []
+              end
+  if childrens.length
+    on_forest(childrens, tree, &blk)
+  end
+end
+
+def on_forest forest, parent=nil, &blk
+  forest.each do |tree|
+    expand_tree tree, parent, &blk
+  end
+end
+
+def write_stat
+  pruned_forest = fread_json('../data/leaf.json')
+  #expand_forest pruned_forest
+
+  count = 0;
+  names  = []
+  on_forest(pruned_forest) do |node|
+    if node['h'] =~ /^http/ && node['h'].match(/b-([\d]+)$/)
+      names << node['n']
+      count = count + 1
     end
   end
-
-  if tree['l'] && tree['l'].length
-    expand_forest tree['l']
-  end
-end
-
-def expand_forest forest
-  forest.each do |tree|
-    expand_tree tree
-  end
+  puts "Total number of node count:#{count}, unique nodes: #{names.uniq.length}"
+  fwrite_json('names.raw.json', names.to_json)
 end
 
 def run
-  pruned_forest = fread_json('leaf.json')
-  expand_forest pruned_forest
+  on_forest(pruned_forest) do |node|
+    if node['h'] =~ /^http/ && node['h'].match(/b-([\d]+)$/)
+      if $1
+        save_tree $1
+      end
+    end
+  end
+end
+
+def gardening
+  output_path = File.join(File.dirname(__FILE__), '..', 'out')
+  glob_pat = File.join(output_path, '*.raw.json')
+
+  Dir[glob_pat].each do |file|
+    bdata = fread_json(File.basename(file))
+  end
+  #  Till to do gardening
+end
+
+def alienize
+  alien = []
+  deep_forest = fread_json('tree.json')
+
+  deep_forest.each do |forest|
+    on_forest(forest) do |node, parent|
+      if node['h'] =~ /^http/ && node['h'].match(/b-([\d]+)$/)
+        names << node['n']
+        count = count + 1
+      end
+    end
+  end
+  #fwrite_json('alien.raw.json', names.to_json)
 end
