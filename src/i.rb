@@ -1,7 +1,8 @@
 require 'rubygems'
 require 'net/http'
-require 'curb'
+require 'cgi'
 require 'json'
+require 'curb'
 require 'fastercsv'
 
 DEFAULT_PARAMS = {
@@ -42,15 +43,18 @@ def fread_json file
   end
 end
 
-def fwrite_json file, json
+def fwrite_json file, json, options={}
   path = File.join(File.dirname(__FILE__), '..', 'out', file)
+  if (options[:no_override] == true) && File.exists?(path)
+    write_log "Skipping: File exists: #{path}"
+  end
   File.open(path, 'w') do |f|
     f.write(json)
-    puts "Wrote (#{json.length}) to file #{path}"
+    write_log "Wrote (#{json.length}) to file #{path}"
   end
 end
 
-def write_log file, data
+def write_log data, file='out.log'
   path = File.join(File.dirname(__FILE__), '..', 'log', file)
   File.open(path, 'a') do |f|
     f.write("[#{Time.now}] #{data}\n")
@@ -79,7 +83,7 @@ def save_tree category
     end
   end
   sleep 1
-  fwrite_json("#{category}.raw.json", http.body_str)
+  fwrite_json("#{category}.raw.json", http.body_str, :no_override => true)
 end
 
 def expand_tree tree, parent=nil, &blk
@@ -119,7 +123,7 @@ def write_stat
       count = count + 1
     end
   end
-  puts "Total number of node count:#{count}, unique nodes: #{names.uniq.length}"
+  write_log "Total number of node count:#{count}, unique nodes: #{names.uniq.length}"
   fwrite_json('names.raw.json', names.to_json)
 end
 
@@ -145,7 +149,7 @@ def gardening
     if bdata['metadata'] && bdata['metadata']['catGroupPath']
       category_str = bdata['metadata']['catGroupPath']
     else
-      write_log 'gardening.log', " --> ERROR: metadata not found #{file}"
+      write_log " --> ERROR: metadata not found #{file}"
     end
     category = category_str.split('|')
     first = category[0]
@@ -153,13 +157,13 @@ def gardening
 
     items = bdata['items']
     if !bdata['items'].nil?
-      puts "processing #{file} ..."
+      write_log "processing #{file} ..."
       items.each do |item|
         table << [first, last, item['name'], category_str]
         item['name']
       end
     else
-      write_log 'gardening.log', "NOT processing #{file} ..."
+      write_log "NOT processing #{file} ..."
     end
   end
   #  Till to do gardening
