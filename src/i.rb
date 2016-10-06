@@ -3,7 +3,7 @@ require 'net/http'
 require 'cgi'
 require 'json'
 require 'curb'
-require 'fastercsv'
+require 'faster_csv'
 
 DEFAULT_PARAMS = {
   :storeId => "10153",
@@ -23,6 +23,7 @@ DEFAULT_PARAMS = {
   :sortBy => "ORIGINAL_SORT_ORDER",
   :zipCode => "60602"
 }
+
 
 def headers_for_category category
 end
@@ -63,7 +64,7 @@ def write_log data, file='out.log'
 end
 
 
-def save_tree category
+def save_tree_with_mobile_api category
   url = 'http://m.sears.com/mobileapi/v3/products/search'
   params = DEFAULT_PARAMS.merge({:catGroupId => category, :endIndex => "100"})
   uri = URI.parse(path_with_params(url, params))
@@ -132,7 +133,7 @@ def run
   on_forest(pruned_forest) do |node, parent|
     if node['h'] =~ /^http/ && node['h'].match(/b-([\d]+)$/)
       if $1
-        save_tree $1
+        save_tree_with_mobile_api $1
       end
     end
   end
@@ -168,81 +169,13 @@ def gardening
   end
   #  Till to do gardening
   table_csv_file = File.join(File.dirname(__FILE__), '..', 'data', 'table.csv')
-  File.open(table_csv_file, 'w') do |f|
-    f.write("")
-  end
-  File.open(table_csv_file, 'a') do |f|
+  FasterCSV.open(table_csv_file, "w", :skip_blanks => true, :col_sep => "\t") do |csv|
     table.each do |row|
-      f.write(row.to_csv)
+      csv << row
+      #csv << row
       #f.write(row.map{|c| c.sub('"', "'")}.to_csv)
     end
   end
   "Done #{table.length}"
-end
-
-
-
-
-
-################################################################################
-TreeHooks = Struct.new(:before,:after) do
-  def before &blk
-    before = blk
-  end
-
-  def after &blk
-    after = blk
-  end
-end
-
-def trek forest, parent=nil, &blk
-  tree_hooks=TreeHooks.new
-  blk.call(tree_hooks)
-
-  puts tree_hooks.before.inspect
-  puts tree_hooks.after.inspect
-
-  walk(forest, nil, tree_hooks)
-end
-
-def walk forest, parent, tree_hooks
-  return if forest.nil?
-  forest.each do |tree|
-    climb(tree, forest, tree_hooks)
-  end
-end
-
-def climb tree, parent, tree_hooks
-  if !tree_hooks.before.nil?
-    tree_hooks.call(forest, parent)
-  end
-
-  walk(tree['children'], tree, tree_hooks)
-
-  if !tree_hooks.after.nil?
-    tree_hooks.call(forest, parent)
-  end
-end
-
-def check_count
-  forest = fread_json('tree.json')
-  count = 0
-
-  trek(forest) do |hook|
-    hook.before do |node, parent|
-      puts "Before Hook"
-      if node['h'] =~ /^http/ && node['h'].match(/b-([\d]+)$/)
-        names << node['n']
-        count = count + 1
-      end
-    end
-
-    hook.after do |node, parent|
-      puts "After Hook"
-    end
-  end
-
-  puts count
-  #fwrite_json('alien.raw.json', names.to_json)
 end
 
