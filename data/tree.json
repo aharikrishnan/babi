@@ -8467,7 +8467,8 @@
 										"n": "Young Men's Activewear"
 									}
 								],
-								"n": ""
+                  "h": "http://www.sears.com/clothing-shoes-jewelry-clothing-for-the-family-activewear-for-the-family/b-5000873",
+								"n": "Activewear for the Family"
 							},
 							{
 								"_": "http://www.sears.com/en_us/sitemap/clothing-shoes-jewelry/clothing/for-the-family/outerwear-for-the-family.html",
@@ -8551,7 +8552,8 @@
 										"n": "Young Men's Outerwear"
 									}
 								],
-								"n": ""
+                  "h": "http://www.sears.com/clothing-shoes-jewelry-clothing-for-the-family-outerwear-for-the-family/b-5000874",
+								"n": "Outerwear for the Family"
 							},
 							{
 								"_": "http://www.sears.com/en_us/sitemap/clothing-shoes-jewelry/clothing/for-the-family/sleepwear-for-the-family.html",
@@ -8635,10 +8637,12 @@
 										"n": "Young Men's Sleepwear"
 									}
 								],
-								"n": ""
+                  "h": "http://www.sears.com/clothing-shoes-jewelry-clothing-for-the-family-sleepwear-for-the-family/b-5000875",
+								"n": "Sleepwear for the Family"
 							}
 						],
-						"n": ""
+            "h": "http://www.sears.com/clothing-shoes-jewelry-clothing-for-the-family/b-5000872",
+						"n": "For the Family"
 					},
 					{
 						"_": "",
