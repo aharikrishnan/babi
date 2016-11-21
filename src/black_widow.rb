@@ -28,7 +28,7 @@ module BlackWidow
 
       FasterCSV.open(table_csv_file, "r", :skip_blanks => true, :col_sep => "\t") do |csv|
         index = 0
-        csv.each_with_index do |category, prod_sku|
+        csv.each do |category, prod_sku|
           page = 1
           out_path = "../out.pdp/#{prod_sku}.#{page}.raw.json.gz"
           next if File.exists? File.join(File.dirname(__FILE__), out_path)
@@ -40,7 +40,6 @@ module BlackWidow
               http.headers[k] = v
             end
           end
-          puts http.body_str
           fwrite_json(out_path, http.body_str)
           index = index + 1
           sleep(rand(10)) if index % 30 == 0
