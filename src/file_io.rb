@@ -1,6 +1,10 @@
 require 'rubygems'
 require 'json'
 
+def get_relative_path
+  path = File.join(File.dirname(__FILE__), '..')
+end
+
 def fread file
   path = File.join(File.dirname(__FILE__), '..', 'out', file)
   return File.open(path, 'r') do |f|

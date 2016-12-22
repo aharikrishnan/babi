@@ -162,12 +162,18 @@ def evil_plan
   compact_moon
 end
 
-def recruit minion, count=100, per_page=50
+def path_with_params path, params
+  "#{path}?".concat(params.collect { |k,v| "#{k}=#{CGI::escape(v.to_s)}" }.join('&'))
+end
+
+
+def recruit minion, start_page=1, end_page=2
   url = 'http://www.sears.com/service/search/v2/productSearch'
 
-  (1..(count.to_f/per_page).ceil).each do |page|
+  #(1..pages).each do |page|
+
     params = MINION_SCHEMA[:params].merge({
-      'pageNum' => page,
+      'pageNum' => start_page,
       'catgroupId' => minion['category'],
       'catgroupIdPath' => minion['categories'],
       'levels' => minion['path'],
@@ -181,8 +187,23 @@ def recruit minion, count=100, per_page=50
     end
 
     #sleep 1
-    fwrite_json("#{minion['categories']}.#{page}.raw.json.gz", http.body_str, :no_override => true)
-  end
+    fwrite_json("#{minion['categories']}.#{start_page}.raw.json.gz", http.body_str, :no_override => true)
+    tar_file = File.join(get_relative_path, 'out', 'search.tar')
+    file_path = File.join(get_relative_path, 'out', "#{minion['categories']}.#{start_page}.raw.json.gz")
+    `tar --append --file=#{tar_file} #{file_path}`
+    search_data = fread_json(file_path)
+    pagination = search_data[pagination] || []
+    # Array index starts from 0
+    next_page = pagination[start_page]
+
+    start_page  = start_page + 1
+    `rm #{file_path}`
+
+    if (start_page <= end_page) && (!next_page.nil? && !next_page["value"].nil?)
+      recruit minion, start_page, end_page
+    end
+
+  #end
 end
 
 
