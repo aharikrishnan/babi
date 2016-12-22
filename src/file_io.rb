@@ -9,7 +9,7 @@ def fread file
   path = File.join(File.dirname(__FILE__), '..', 'out', file)
 
   if file.to_s =~ /gz/
-	`gzip -d #{path}`
+	`gzip -fqd #{path}`
 	path  = path.sub(/.gz$/, '')
   end
   return File.open(path, 'r') do |f|

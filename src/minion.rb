@@ -203,7 +203,13 @@ def recruit minion, start_page=1, end_page=20
     next_page = pagination[start_page]
 
     start_page  = start_page + 1
-    `rm #{file_path}`
+	if File.exists?(file_path)
+	`rm #{file_path}`
+	end
+	decompressed = file_path.sub(/.gz$/, '')
+	if File.exists?(decompressed)
+	`rm #{decompressed}`
+	end
 
     if (start_page <= end_page) && (!next_page.nil? && !next_page["value"].nil?)
       recruit minion, start_page, end_page
