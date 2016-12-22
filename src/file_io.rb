@@ -28,7 +28,6 @@ def fwrite_json file, json, options={}
   end
   File.open(path, 'w') do |f|
     f.write(json)
-    write_log "Wrote (#{json.length}) to file #{path}"
   end
 end
 
@@ -36,7 +35,6 @@ def write_log data, file='out.log'
   path = File.join(File.dirname(__FILE__), '..', 'log', file)
   File.open(path, 'a') do |f|
     f.write("[#{Time.now}] #{data}\n")
-    puts "Wrote (#{data.length}) to file #{path}"
   end
 end
 
