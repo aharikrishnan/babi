@@ -12,9 +12,14 @@ def fread file
 	`gzip -fqd #{path}`
 	path  = path.sub(/.gz$/, '')
   end
-  return File.open(path, 'r') do |f|
+  json = nil
+
+  if File.exists? path
+    File.open(path, 'r') do |f|
       json = f.read
+    end
   end
+  return json
 end
 
 def fread_json file
