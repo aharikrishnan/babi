@@ -7,6 +7,11 @@ end
 
 def fread file
   path = File.join(File.dirname(__FILE__), '..', 'out', file)
+
+  if file.to_s =~ /gz/
+	`gzip -d #{path}`
+	path  = path.sub(/.gz$/, '')
+  end
   return File.open(path, 'r') do |f|
       json = f.read
   end
@@ -17,6 +22,8 @@ def fread_json file
   begin
     JSON.parse(json)
   rescue Exception => e
+  puts file
+  puts e.inspect
     {}
   end
 end
