@@ -167,7 +167,7 @@ def path_with_params path, params
 end
 
 
-def recruit minion, start_page=1, end_page=2
+def recruit minion, start_page=1, end_page=20
   url = 'http://www.sears.com/service/search/v2/productSearch'
 
   #(1..pages).each do |page|
