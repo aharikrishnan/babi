@@ -78,56 +78,67 @@ module BlackWidow
     end
 
 
-=begin
-    def extact
+    def extract
+      count=0
+      s=Time.now
+
       output_path = File.join(File.dirname(__FILE__), '..', 'out.pdp')
-      glob_pat = File.join(output_path, '*.raw.json')
+      glob_pat = File.join(output_path, '.')
 
-      table = []
-      puts "To process #{Dir[glob_pat].length}"
-
-      terror_minions = find_dup_minions
-      Dir[glob_pat].each do |file|
-        json_data = fread_json(File.basename(file))
-        data = json_data['data']
-        categories = []
-        if data && data['breadCrumb']
-          categories = [ data['breadCrumb'].map{|category| category['name']} ]
-        else
-          write_log " --> ERROR: data not found #{file}"
-          next
-        end
-        first = categories[0][0]
-        last = categories[0][-1]
-        items = data['products']
-
-        if !items.nil?
-          if !terror_minions[last].nil?
-            paths = terror_minions[last]
-            categories = paths.map{|path| path.split('_')}
-          end
-
-          categories.each do |category|
-            category_path = category.join(' | ')
-            items.each do |item|
-              table << [category[0], category[-1], item['name'], category_path].map{|k| k.to_s.gsub("\t", " ").gsub("\n", " ")}
-              write_log "written  #{item['name']} "
-            end
-          end
-        else
-          write_log "NOT processing #{file} ..."
-        end
-      end
-
-      table_csv_file = File.join(File.dirname(__FILE__), '..', 'data', 't100.csv')
+      table_csv_file = File.join(File.dirname(__FILE__), '..', 'data', 'products.0.csv')
       FasterCSV.open(table_csv_file, "w", :skip_blanks => true, :col_sep => "\t") do |csv|
-        table.each do |row|
-          csv << row
+        csv << ['id', 'seo title', 'browse node', 'bn id', 'title', 'brand', 'model', 'offer id']
+        Dir.foreach(glob_pat) do |item|
+          begin
+            arr = []
+            next if item == '.' || item == '..' || item.match(/gz/)
+            offerID=item.split(".")[0]
+            #next if all.include? offerID
+            j = fread_json("../out.pdp/#{item}")
+            data = j["data"] || {}
+            raise "not valid JSON #{item}" if (data == {})
+
+            if (data["productstatus"]||{})["isBundle"]
+              bundle = data["bundle"] || {}
+              bundle_groups = bundle["bundleGroup"] || []
+              bundle_groups.each do |bundle_group|
+                products = bundle_group["products"]||[]
+                products.each do |product|
+                  id       = product["id"]
+                  seoTitle = product["name"]
+                  bn       = data["productmapping"]["primaryWebPath"].sort{|s,s1| s["level"]<=>s1["level"]}.map{|m| m["name"]}.join(" | ")
+                  bn_id       = data["productmapping"]["primaryWebPath"].sort{|s,s1| s["level"]<=>s1["level"]}.map{|m| m["id"]}.join(" | ")
+                  title    = product["name"]
+                  brand    = product["brand"]
+                  model    = product["modelNo"]
+                  offerId  = product["offerId"]
+                  arr << [id, seoTitle, bn, bn_id,  title, brand, model, offerId]
+                  write_log "[offer] #{offerId} -> #{id}"
+                end
+              end
+            else
+              product  = data["product"] || {}
+              id       = product["id"]
+              title    = product["name"]
+              seoTitle = product["seo"]["title"] rescue title
+              bn       = data["productmapping"]["primaryWebPath"].sort{|s,s1| s["level"]<=>s1["level"]}.map{|m| m["name"]}.join(" | ")
+              bn_id       = data["productmapping"]["primaryWebPath"].sort{|s,s1| s["level"]<=>s1["level"]}.map{|m| m["id"]}.join(" | ")
+              brand    = product["brand"]["name"] rescue nil
+              model    = product["mfr"]["modelNo"] rescue nil
+              arr << [id, seoTitle, bn, bn_id, title, brand, model]
+            end
+
+            arr.each do |row|
+              csv << row.map{|cell| cell.to_s.gsub(/[\r\t\n]/, ' ').gsub(/[^A-Za-z0-9\.\-,\&\|'"]/, ' ')}
+            end
+            write_log "[DONE] #{item}"
+          rescue Exception => e
+            write_log "[ERROR] #{item}"
+            write_log "!!!  Failed #{item} | Reason: #{e.message} | #{e.backtrace.inspect}"
+          end
         end
       end
-      "Done. #{table.length}"
     end
-=end
 
   end
 end
