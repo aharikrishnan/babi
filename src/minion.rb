@@ -198,7 +198,7 @@ def recruit minion, start_page=1, end_page=20
     file_path = Pathname.new(File.expand_path(File.join(get_relative_path, 'out', file_name)))
     `cd #{get_relative_path} && tar --append --file=#{tar_file} #{file_path.relative_path_from(get_relative_path)} `
     search_data = fread_json(file_name)
-    pagination = search_data[pagination] || []
+    pagination = (search_data["data"]|| {})["pagination"] || []
     # Array index starts from 0
     next_page = pagination[start_page]
 
@@ -278,4 +278,3 @@ def get_category_from_link link
   $1
 end
 
-steal_moon
