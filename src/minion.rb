@@ -115,49 +115,45 @@ def compact_moon
   output_path = File.join(File.dirname(__FILE__), '..', 'out')
   glob_pat = File.join(output_path, '*.raw.json')
 
-  table = []
   puts "To process #{Dir[glob_pat].length}"
 
   terror_minions = find_dup_minions
-  Dir[glob_pat].each do |file|
-    json_data = fread_json(File.basename(file))
-    data = json_data['data']
-    categories = []
-    if data && data['breadCrumb']
-      categories = [ data['breadCrumb'].map{|category| category['name']} ]
-    else
-      write_log " --> ERROR: data not found #{file}"
-      next
-    end
-    first = categories[0][0]
-    last = categories[0][-1]
-    items = data['products']
-
-    if !items.nil?
-      if !terror_minions[last].nil?
-        paths = terror_minions[last]
-        categories = paths.map{|path| path.split('_')}
-      end
-
-      categories.each do |category|
-        category_path = category.join(' | ')
-        items.each do |item|
-          table << [category[0], category[-1], item['name'], category_path].map{|k| k.to_s.gsub("\t", " ").gsub("\n", " ")}
-          write_log "written  #{item['name']} "
-        end
-      end
-    else
-      write_log "NOT processing #{file} ..."
-    end
-  end
-
   table_csv_file = File.join(File.dirname(__FILE__), '..', 'data', 't100.csv')
   FasterCSV.open(table_csv_file, "w", :skip_blanks => true, :col_sep => "\t") do |csv|
-    table.each do |row|
-      csv << row
+    csv << ['Root Category', 'Leaf Category', 'Brand Name', 'Name', 'Categories']
+    Dir[glob_pat].each do |file|
+      json_data = fread_json(File.basename(file))
+      data = json_data['data']
+      categories = []
+      if data && data['breadCrumb']
+        categories = [ data['breadCrumb'].map{|category| category['name']} ]
+      else
+        write_log " --> ERROR: data not found #{file}"
+        next
+      end
+      first = categories[0][0]
+      last = categories[0][-1]
+      items = data['products']
+
+      if !items.nil?
+        if !terror_minions[last].nil?
+          paths = terror_minions[last]
+          categories = paths.map{|path| path.split('_')}
+        end
+
+        categories.each do |category|
+          category_path = category.join(' | ')
+          items.each do |item|
+            csv << [category[0], category[-1], item['brandName'], item['name'], category_path].map{|k| k.to_s.gsub("\t", " ").gsub("\n", " ")}
+          end
+        end
+      else
+        write_log "NOT processing #{file} ..."
+      end
     end
+
   end
-  "Done. #{table.length}"
+  puts "Done."
 end
 
 def evil_plan
