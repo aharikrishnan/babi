@@ -76,7 +76,7 @@ class BlackWidow::Price
 
   # preprocess
   def self.thread
-    table_csv_file = File.join(File.dirname(__FILE__), '..', 'data', 'black-widow.csv')
+    table_csv_file = File.join(File.dirname(__FILE__), '..', 'data', 'black-widow.price.csv')
 
     if File.exists?(table_csv_file)
       puts "Sure to replace the file (yes/no)"

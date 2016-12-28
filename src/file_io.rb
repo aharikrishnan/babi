@@ -6,17 +6,21 @@ def get_relative_path
   @path ||= Pathname.new(File.expand_path(File.join(File.dirname(__FILE__), '..')))
 end
 
-def fread file
+def fread file, preserve=false
   path = File.join(File.dirname(__FILE__), '..', 'out', file)
+  gzip = false
   if file.to_s =~ /gz/
-	`gzip -fqd #{path}`
-	path  = path.sub(/.gz$/, '')
+    gzip = true
+    `gzip -fqd #{path}`
+    path  = path.sub(/.gz$/, '')
   end
   json = nil
-
   if File.exists? path
     File.open(path, 'r') do |f|
       json = f.read
+    end
+    if gzip && preserve
+      `gzip #{path}`
     end
   end
   return json
