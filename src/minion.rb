@@ -79,7 +79,7 @@ def steal_moon
     hook.before do |minion, parent|
       if is_last_minion? minion
         # Only the last standing minion is worth of Stealing moon
-        recruit minion
+        recruit minion, 16, 20
       end
     end
   end
@@ -120,7 +120,7 @@ def compact_moon
   terror_minions = find_dup_minions
   table_csv_file = File.join(File.dirname(__FILE__), '..', 'data', 't100.csv')
   FasterCSV.open(table_csv_file, "w", :skip_blanks => true, :col_sep => "\t") do |csv|
-    csv << ['Root Category', 'Leaf Category', 'Brand Name', 'Name', 'Categories']
+    csv << ['Root Category', 'Leaf Category', 'Brand Name', 'Name', 'SIN', 'Part NUmber', 'Url', 'Categories']
     Dir[glob_pat].each do |file|
       json_data = fread_json(File.basename(file))
       data = json_data['data']
@@ -144,7 +144,7 @@ def compact_moon
         categories.each do |category|
           category_path = category.join(' | ')
           items.each do |item|
-            csv << [category[0], category[-1], item['brandName'], item['name'], category_path].map{|k| k.to_s.gsub("\t", " ").gsub("\n", " ")}
+            csv << [category[0], category[-1], item['brandName'], item['name'], item['sin'], item['partNumber'], item['url'], category_path].map{|k| k.to_s.gsub("\t", " ").gsub("\n", " ")}
           end
         end
       else

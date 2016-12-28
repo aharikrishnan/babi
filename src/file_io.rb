@@ -1,5 +1,6 @@
 require 'rubygems'
 require 'json'
+require 'pathname'
 
 def get_relative_path
   @path ||= Pathname.new(File.expand_path(File.join(File.dirname(__FILE__), '..')))
@@ -7,7 +8,6 @@ end
 
 def fread file
   path = File.join(File.dirname(__FILE__), '..', 'out', file)
-
   if file.to_s =~ /gz/
 	`gzip -fqd #{path}`
 	path  = path.sub(/.gz$/, '')
@@ -27,8 +27,8 @@ def fread_json file
   begin
     JSON.parse(json)
   rescue Exception => e
-  puts file
-  puts e.inspect
+    puts file
+    puts e.inspect
     {}
   end
 end
