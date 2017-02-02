@@ -163,7 +163,7 @@ module BlackWidow::Product
           http = http_get(uri.to_s)
           fwrite_json(out_path, http.body_str)
           index = index + 1
-          #sleep(rand(10)) if index % 30 == 0
+          sleep(rand(5)) if index % 30 == 0
         end
       end
     end
