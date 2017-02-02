@@ -118,9 +118,9 @@ def compact_moon
   puts "To process #{Dir[glob_pat].length}"
 
   terror_minions = find_dup_minions
-  table_csv_file = File.join(File.dirname(__FILE__), '..', 'data', 't100.csv')
+  table_csv_file = File.join(File.dirname(__FILE__), '..', 'data', 'search.csv')
   FasterCSV.open(table_csv_file, "w", :skip_blanks => true, :col_sep => "\t") do |csv|
-    csv << ['Root Category', 'Leaf Category', 'Brand Name', 'Name', 'SIN', 'Part NUmber', 'Url', 'Categories']
+    csv << ['Root Category', 'Leaf Category', 'Brand Name', 'Name', 'SIN', 'Part Number', 'Url', 'Categories']
     Dir[glob_pat].each do |file|
       json_data = fread_json(File.basename(file))
       data = json_data['data']

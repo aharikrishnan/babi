@@ -94,7 +94,7 @@ class BlackWidow::Price
       glob_pat = File.join(get_relative_path, 'out.search', '.')
       Dir.foreach(glob_pat) do |item|
         next if !File.file?(File.join(get_relative_path, 'out.search', item))
-        json_data = fread_json("../out.search/#{item}")
+        json_data = fread_json("../out.search/#{item}", true)
         data = json_data['data'] || {}
         items = data['products'] || []
 
@@ -148,6 +148,7 @@ module BlackWidow::Product
 
   class << self
     def cobweb
+      crawled = fread('../data/black-widow.state').to_set
       table_csv_file = File.join(File.dirname(__FILE__), '..', 'data', 'black-widow.csv')
 
       FasterCSV.open(table_csv_file, "r", :skip_blanks => true, :col_sep => "\t") do |csv|
@@ -155,20 +156,20 @@ module BlackWidow::Product
         csv.each do |category, prod_sku|
           page = 1
           out_path = "../out.pdp/#{prod_sku}.#{page}.raw.json.gz"
-          next if File.exists? File.join(File.dirname(__FILE__), out_path)
+          next if crawled.include?(prod_sku) || File.exists?(File.join(File.dirname(__FILE__), out_path))
 
           uri = URI.parse("http://www.sears.com/content/pdp/config/products/v1/products/#{prod_sku}?site=sears")
           puts uri.to_s
           http = http_get(uri.to_s)
           fwrite_json(out_path, http.body_str)
           index = index + 1
-          sleep(rand(10)) if index % 30 == 0
+          #sleep(rand(10)) if index % 30 == 0
         end
       end
     end
 
     def thread
-      categories = fread('../data/bn2.csv').split.to_set
+      categories = fread('../data/bn3.csv').split.to_set
 
       table_csv_file = File.join(File.dirname(__FILE__), '..', 'data', 'black-widow.csv')
       FasterCSV.open(table_csv_file, "w", :skip_blanks => true, :col_sep => "\t") do |csv|

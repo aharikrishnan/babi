@@ -26,8 +26,8 @@ def fread file, preserve=false
   return json
 end
 
-def fread_json file
-  json = fread file
+def fread_json file, preserve=false
+  json = fread file, preserve
   begin
     JSON.parse(json)
   rescue Exception => e
